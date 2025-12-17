@@ -19,7 +19,7 @@ class ApiController extends Controller
 {
     public function index()
     {
-        return '[API] Lara-S-CMS';
+        return '[API] Tekin';
     }
 
     public function get_banner()
