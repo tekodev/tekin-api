@@ -24,6 +24,10 @@ return [
         'http://localhost:5173',
         'http://127.0.0.1:3000',
         'http://127.0.0.1:5173',
+        'https://codesterdam.shop',
+        'http://codesterdam.shop',
+        'https://www.codesterdam.shop',
+        'http://www.codesterdam.shop',
     ],
 
     'allowed_origins_patterns' => [],
