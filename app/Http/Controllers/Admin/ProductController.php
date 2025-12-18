@@ -189,9 +189,8 @@ class ProductController extends Controller
 
         // MANIPULATE DATE
         $data->purchase_date = Helper::convert_datepicker($request->purchase_date);
-        $expired_date = null;
         if ($request->expired_date) {
-            $data->$expired_date = Helper::convert_datepicker($request->expired_date);
+            $data->expired_date = Helper::convert_datepicker($request->expired_date);
         }
 
         if ((int) $request->qty > 0) {
@@ -372,9 +371,8 @@ class ProductController extends Controller
 
         // MANIPULATE DATE
         $data->purchase_date = Helper::convert_datepicker($request->purchase_date);
-        $expired_date = null;
         if ($request->expired_date) {
-            $data->$expired_date = Helper::convert_datepicker($request->expired_date);
+            $data->expired_date = Helper::convert_datepicker($request->expired_date);
         }
 
         if ((int) $request->qty > 0) {
