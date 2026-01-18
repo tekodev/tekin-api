@@ -63,11 +63,13 @@ Route::group([
         // AUTH
         Route::get('/login', 'system\AuthController@login')->name('admin.login');
         Route::post('/do-login', 'system\AuthController@do_login')->name('admin.do_login');
-        Route::get('/logout', 'system\AuthController@logout')->name('admin.logout');
-        Route::get('/logout-all', 'system\AuthController@logout_all')->name('admin.logout.all');
         Route::get('/auth/{social}', 'system\AuthController@redirect_to_provider')->name('admin.auth.provider');
         Route::get('/auth/{social}/callback', 'system\AuthController@handle_provider_callback')->name('admin.auth.provider.callback');
     }
+
+    // LOGOUT - Always available for authenticated users
+    Route::get('/logout', 'system\AuthController@logout')->name('admin.logout');
+    Route::get('/logout-all', 'system\AuthController@logout_all')->name('admin.logout.all');
 
     // NEED AUTH
     Route::group(['middleware' => 'check.admin'], function () {

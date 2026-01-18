@@ -33,7 +33,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Force HTTPS if APP_URL starts with https
         $appUrl = config('app.url');
-        if (str_starts_with($appUrl, 'https://')) {
+        if ($appUrl && str_starts_with($appUrl, 'https://')) {
             URL::forceScheme('https');
         }
     }
