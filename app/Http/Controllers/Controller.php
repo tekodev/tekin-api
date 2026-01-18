@@ -39,6 +39,12 @@ class Controller extends BaseController
                 // GET USER DATA
                 $user_session = Session::get('admin');
                 $user_data = SysUser::find($user_session->id);
+
+                if (!$user_data) {
+                    // USER NOT FOUND, THEN FORCE USER TO RE-LOGIN
+                    Session::flush();
+                    return redirect()->route('admin.login')->with('info', lang('User not found, please re-login'));
+                }
                 
                 // if password has been changed, then force user to re-login
 				$auth = Helper::generate_token($user_data->password);
