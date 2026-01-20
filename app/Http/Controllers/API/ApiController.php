@@ -14,6 +14,8 @@ use App\Models\Product;
 use App\Models\Article;
 use App\Models\Topic;
 use App\Models\Banner;
+use App\Models\Category;
+use App\Models\system\SysConfig;
 
 class ApiController extends Controller
 {
@@ -35,13 +37,58 @@ class ApiController extends Controller
 
     public function get_product()
     {
-        $data = Product::whereNull('replaced_at')
+        $data = Product::with('category')
+            ->whereNull('replaced_at')
             ->orderBy('id', 'desc')
             ->get();
 
         return response()->json([
             'status' => 'true',
             'message' => 'Successfully get product data',
+            'data' => $data
+        ]);
+    }
+
+    public function get_product_detail($id)
+    {
+        $data = Product::with('category')
+            ->whereNull('replaced_at')
+            ->find($id);
+
+        if ($data) {
+            $data->makeHidden(['category_id']);
+            return response()->json([
+                'status' => 'true',
+                'message' => 'Successfully get product detail',
+                'data' => $data
+            ]);
+        }
+
+        return response()->json([
+            'status' => 'false',
+            'message' => 'Product not found',
+            'data' => null
+        ], 404);
+    }
+
+    public function get_categories()
+    {
+        $data = Category::where('status', 1)->get();
+
+        return response()->json([
+            'status' => 'true',
+            'message' => 'Successfully get categories data',
+            'data' => $data
+        ]);
+    }
+
+    public function get_config()
+    {
+        $data = SysConfig::first();
+
+        return response()->json([
+            'status' => 'true',
+            'message' => 'Successfully get config data',
             'data' => $data
         ]);
     }

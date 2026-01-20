@@ -16,6 +16,7 @@ use App\Libraries\Helper;
 
 // MODELS
 use App\Models\Product;
+use App\Models\Category;
 
 class ProductController extends Controller
 {
@@ -51,7 +52,7 @@ class ProductController extends Controller
         $this->item = ucwords(lang($this->item, $this->translation));
 
         // GET THE DATA
-        $query = Product::whereNull('replaced_at');
+        $query = Product::with('category')->whereNull('replaced_at');
 
         return $datatables->eloquent($query)
             ->addColumn('item_status', function ($data) {
@@ -59,6 +60,9 @@ class ProductController extends Controller
                     return '<span class="label label-danger"><i>' . ucwords(lang('disabled', $this->translation)) . '</i></span>';
                 }
                 return '<span class="label label-success">' . ucwords(lang('enabled', $this->translation)) . '</span>';
+            })
+            ->addColumn('category', function ($data) {
+               return $data->category ? $data->category->title : '-'; 
             })
             ->addColumn('action', function ($data) {
                 $html = '<a href="' . route('admin.product.edit', $data->id) . '" class="btn btn-xs btn-primary" title="' . ucwords(lang('edit', $this->translation)) . '"><i class="fa fa-pencil"></i>&nbsp; ' . ucwords(lang('edit', $this->translation)) . '</a>';
@@ -88,8 +92,10 @@ class ProductController extends Controller
         if ($authorize['status'] != 'true') {
             return back()->with('error', $authorize['message']);
         }
+        
+        $categories = Category::where('status', 1)->get();
 
-        return view('admin.product.form');
+        return view('admin.product.form', compact('categories'));
     }
 
     public function do_create(Request $request)
@@ -157,6 +163,7 @@ class ProductController extends Controller
         $data->description = $description;
 
         $data->status = (int) $request->status;
+        $data->category_id = $request->category_id ? (int) $request->category_id : null;
 
         // PROCESSING IMAGE
         $dir_path = 'uploads/product/';
@@ -242,7 +249,9 @@ class ProductController extends Controller
                 ->with('error', lang('#item not found, please recheck your link again', $this->translation, ['#item' => $this->item]));
         }
 
-        return view('admin.product.form', compact('data'));
+        $categories = Category::where('status', 1)->get();
+
+        return view('admin.product.form', compact('data', 'categories'));
     }
 
     public function do_edit($id, Request $request)
@@ -329,6 +338,7 @@ class ProductController extends Controller
         $data->description = $description;
 
         $data->status = (int) $request->status;
+        $data->category_id = $request->category_id ? (int) $request->category_id : null;
 
         // IF UPLOAD NEW IMAGE
         if ($request->image) {

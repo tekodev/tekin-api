@@ -23,6 +23,11 @@ Route::group(['namespace' => 'API'], function () {
     Route::get('/banner', 'ApiController@get_banner');
 
     Route::get('/product', 'ApiController@get_product');
+    Route::get('/product/{id}', 'ApiController@get_product_detail');
+
+    Route::get('/categories', 'ApiController@get_categories');
+
+    Route::get('/config', 'ApiController@get_config');
 
     Route::get('/topic', 'ApiController@get_topic');
 

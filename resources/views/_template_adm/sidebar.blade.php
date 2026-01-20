@@ -34,6 +34,21 @@
                     </a>
                 </li>
             @endif
+
+            @if (Helper::authorizing('Product', 'View List')['status'] == 'true')
+                @php
+                    $menu_active = '';
+                    // We use /category/ to check active state
+                    if(Helper::is_menu_active('/category/')){
+                        $menu_active = 'current-page';
+                    }
+                @endphp
+                <li class="{{ $menu_active }}">
+                    <a href="{{ route('admin.category.list') }}">
+                        <i class="fa fa-tags"></i> {{ ucwords(lang('category', $translation)) }}
+                    </a>
+                </li>
+            @endif
             
             @if (Helper::authorizing('Product', 'View List')['status'] == 'true')
                 @php

@@ -38,9 +38,16 @@
                             {{ csrf_field() }}
 
                             @php
-                                // set_input_form2($type, $input_name, $label_name, $data, $errors, $required = false, $config = null)
                                 $config = new \stdClass();
                                 $config->attributes = 'autocomplete="off"';
+                                
+                                // Category Selection
+                                if(isset($categories) && count($categories) > 0){
+                                    $config->defined_data = $categories;
+                                    $config->field_text = 'title';
+                                    echo set_input_form2('select2', 'category_id', ucwords(lang('category', $translation)), $data, $errors, false, $config);
+                                }
+
                                 $config->placeholder = lang("Sample: Men's Shoes (Product Category) + KINIDI (Brand) + Black Canvas (Info)", $translation);
                                 echo set_input_form2('text', 'title', ucwords(lang('title', $translation)), $data, $errors, true, $config);
 

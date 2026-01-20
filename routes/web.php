@@ -209,6 +209,22 @@ Route::group([
             Route::post('/restore', 'BannerController@restore')->name('admin.banner.restore');
         });
 
+        // CATEGORY
+        Route::group(['prefix' => 'category'], function () {
+            Route::get('/', 'CategoryController@list')->name('admin.category.list');
+            Route::get('/get-data', 'CategoryController@get_data')->name('admin.category.get_data');
+            Route::get('/create', 'CategoryController@create')->name('admin.category.create');
+            Route::post('/do-create', 'CategoryController@do_create')->name('admin.category.do_create');
+            Route::get('/edit/{id}', 'CategoryController@edit')->name('admin.category.edit');
+            Route::post('/do-edit/{id}', 'CategoryController@do_edit')->name('admin.category.do_edit');
+            Route::post('/delete', 'CategoryController@delete')->name('admin.category.delete');
+            Route::get('/deleted', 'CategoryController@list_deleted')->name('admin.category.deleted');
+            Route::get('/get-data-deleted', 'CategoryController@get_data_deleted')->name('admin.category.get_data_deleted');
+            Route::post('/restore', 'CategoryController@restore')->name('admin.category.restore');
+            // Sorting if needed
+            // Route::post('/sorting', 'CategoryController@sorting')->name('admin.category.sorting');
+        });
+
         // PRODUCT
         Route::group(['prefix' => 'product'], function () {
             Route::get('/', 'ProductController@list')->name('admin.product.list');
