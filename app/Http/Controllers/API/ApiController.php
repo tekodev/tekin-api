@@ -35,12 +35,25 @@ class ApiController extends Controller
         ]);
     }
 
-    public function get_product()
+    public function get_product(Request $request)
     {
         $data = Product::with('category')
-            ->whereNull('replaced_at')
+            ->whereNull('replaced_at');
+
+        if ($request->category_id) {
+            $data->where('category_id', $request->category_id);
+        }
+
+        $data = $data
             ->orderBy('id', 'desc')
             ->get();
+
+        $data->map(function ($item) {
+            if ($item->image) {
+                $item->image = asset($item->image);
+            }
+            return $item;
+        });
 
         return response()->json([
             'status' => 'true',
@@ -56,6 +69,9 @@ class ApiController extends Controller
             ->find($id);
 
         if ($data) {
+            if ($data->image) {
+                $data->image = asset($data->image);
+            }
             $data->makeHidden(['category_id']);
             return response()->json([
                 'status' => 'true',
@@ -73,7 +89,14 @@ class ApiController extends Controller
 
     public function get_categories()
     {
-        $data = Category::where('status', 1)->get();
+        $data = Category::where('status', 1)->orderBy('position')->get();
+
+        $data->map(function ($item) {
+            if ($item->image) {
+                $item->image = asset('uploads/category/' . $item->image);
+            }
+            return $item;
+        });
 
         return response()->json([
             'status' => 'true',
@@ -85,6 +108,15 @@ class ApiController extends Controller
     public function get_config()
     {
         $data = SysConfig::first();
+
+        if ($data) {
+            if ($data->app_favicon) {
+                $data->app_favicon = asset($data->app_favicon);
+            }
+            if ($data->app_logo_image) {
+                $data->app_logo_image = asset($data->app_logo_image);
+            }
+        }
 
         return response()->json([
             'status' => 'true',

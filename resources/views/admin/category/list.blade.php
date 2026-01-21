@@ -68,6 +68,7 @@
               <table id="datatables" class="table table-striped table-bordered" style="display:none">
                 <thead>
                   <tr>
+                    <th>{{ ucwords(lang('image', $translation)) }}</th>
                     <th>{{ ucwords(lang('title', $translation)) }}</th>
                     <th>{{ ucwords(lang('status', $translation)) }}</th>
                     <th>{{ ucwords(lang('created', $translation)) }}</th>
@@ -111,13 +112,14 @@
       $('#datatables').show();
       $('#datatables').dataTable().fnDestroy();
       var table = $('#datatables').DataTable({
-        order: [[ 2, "desc" ]],
+        order: [[ 3, "desc" ]],
         orderCellsTop: true,
         fixedHeader: false,
         serverSide: true,
         processing: true,
         ajax: "{{ $link_get_data }}",
         columns: [
+            {data: 'image', name: 'image', orderable: false, searchable: false},
             {data: 'title', name: 'categories.title'},
             {data: 'item_status', name: 'item_status'},
             {data: 'created_at', name: 'categories.created_at'},

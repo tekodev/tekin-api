@@ -49,6 +49,12 @@ class CategoryController extends Controller
         $query = Category::whereNull('deleted_at');
 
         return $datatables->eloquent($query)
+            ->addColumn('image', function ($data) {
+                if ($data->image) {
+                    return '<img src="' . asset('uploads/category/' . $data->image) . '" style="width: 50px; height: 50px; object-fit: cover;">';
+                }
+                return '-';
+            })
             ->addColumn('item_status', function ($data) {
                 if ($data->status != 1) {
                     return '<span class="label label-danger"><i>' . ucwords(lang('disabled', $this->translation)) . '</i></span>';
@@ -69,7 +75,7 @@ class CategoryController extends Controller
             ->editColumn('created_at', function ($data) {
                 return $data->created_at;
             })
-            ->rawColumns(['item_status', 'action'])
+            ->rawColumns(['image', 'item_status', 'action'])
             ->toJson();
     }
 
@@ -98,12 +104,16 @@ class CategoryController extends Controller
         // LARAVEL VALIDATION
         $validation = [
             'title' => 'required',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'position' => 'integer',
         ];
         $message = [
             'required' => ':attribute ' . lang('field is required', $this->translation),
         ];
         $names = [
             'title' => ucwords(lang('title', $this->translation)),
+            'image' => ucwords(lang('image', $this->translation)),
+            'position' => ucwords(lang('position', $this->translation)),
         ];
         $this->validate($request, $validation, $message, $names);
 
@@ -119,7 +129,17 @@ class CategoryController extends Controller
         }
         $data->title = $title;
         $data->slug = Helper::check_slug('categories', $request->slug ?? \Illuminate\Support\Str::slug($title));
+        $data->position = (int) $request->position;
         $data->status = (int) $request->status;
+
+        // UPLOAD IMAGE
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $name = time() . '.' . $image->getClientOriginalExtension();
+            $destinationPath = public_path('/uploads/category');
+            $image->move($destinationPath, $name);
+            $data->image = $name;
+        }
 
         // SAVE THE DATA
         if ($data->save()) {
@@ -221,7 +241,17 @@ class CategoryController extends Controller
         // Check slug change? usually slug is not changed or handled carefully
         // $data->slug = Helper::check_slug('categories', $request->slug ?? str_slug($title), 'slug'); 
         
+        $data->position = (int) $request->position;
         $data->status = (int) $request->status;
+
+        // UPLOAD IMAGE
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $name = time() . '.' . $image->getClientOriginalExtension();
+            $destinationPath = public_path('/uploads/category');
+            $image->move($destinationPath, $name);
+            $data->image = $name;
+        }
 
         // UPDATE THE DATA
         if ($data->save()) {

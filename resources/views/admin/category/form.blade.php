@@ -45,6 +45,21 @@
                                 echo set_input_form2('text', 'title', ucwords(lang('title', $translation)), $data, $errors, true, $config);
 
                                 $config = new \stdClass();
+                                $config->attributes = 'autocomplete="off"';
+                                $config->placeholder = lang("Number", $translation);
+                                echo set_input_form2('number', 'position', ucwords(lang('position', $translation)), $data, $errors, false, $config);
+
+                                $config = new \stdClass();
+                                $config->info = 'Max 2MB per file';
+                                if(isset($data)){
+                                    // IF EDIT, THEN NOT REQUIRED
+                                    $config->delete = true;
+                                    echo set_input_form2('image', 'image', ucwords(lang('image', $translation)), $data, $errors, false, $config);
+                                }else{
+                                    echo set_input_form2('image', 'image', ucwords(lang('image', $translation)), $data, $errors, true, $config);
+                                }
+
+                                $config = new \stdClass();
                                 $config->default = 'checked';
                                 echo set_input_form2('switch', 'status', ucwords(lang('status', $translation)), $data, $errors, false, $config);
                             @endphp
