@@ -111,7 +111,7 @@
           </div>
           <div class="x_content">
             <div class="table-responsive">
-              <table id="datatables" class="table table-striped table-bordered" style="display:none">
+              <table class="table table-striped table-bordered">
                 <thead>
                   <tr>
                     <th>{{ ucwords(lang('title', $translation)) }}</th>
@@ -124,23 +124,51 @@
                     <th>{{ ucwords(lang('action', $translation)) }}</th>
                   </tr>
                 </thead>
-                <tbody></tbody>
-              </table>
-
-              <table id="datatables-deleted" class="table table-striped table-bordered" style="display:none">
-                <thead>
-                  <tr>
-                    <th>{{ ucwords(lang('title', $translation)) }}</th>
-                    <th>{{ ucwords(lang('subtitle', $translation)) }}</th>
-                    <th>{{ ucwords(lang('category', $translation)) }}</th>
-                    <th>{{ ucwords(lang('image', $translation)) }}</th>
-                    <th>{{ ucwords(lang('status', $translation)) }}</th>
-                    <th>{{ ucwords(lang('created', $translation)) }}</th>
-                    <th>{{ ucwords(lang('deleted at', $translation)) }}</th>
-                    <th>{{ ucwords(lang('action', $translation)) }}</th>
-                  </tr>
-                </thead>
-                <tbody></tbody>
+                @if (isset($data) && count($data) > 0)
+                  <tbody class="sorted_table">
+                    @foreach ($data as $item)
+                      <tr role="row" id="row-{{ $item->id }}" title="{{ ucfirst(lang("Drag & drop to sorting", $translation)) }}" data-toggle="tooltip">
+                        <td class="dragndrop">{{ $item->title }}</td>
+                        <td>{{ $item->subtitle }}</td>
+                        <td>{{ $item->category ? $item->category->title : '-' }}</td>
+                        <td>
+                            @if($item->image)
+                                <img src="{{ asset($item->image) }}" style="max-width:100px;">
+                            @else
+                                -
+                            @endif
+                        </td>
+                        <td>
+                          @if ($item->status != 1)
+                            <span class="label label-danger"><i>{{ ucwords(lang('disabled', $translation)) }}</i></span>
+                          @else
+                            <span class="label label-success">{{ ucwords(lang('enabled', $translation)) }}</span>
+                          @endif
+                        </td>
+                        <td>{{ $item->created_at }}</td>
+                        <td>{{ Helper::time_ago(strtotime($item->updated_at), lang('ago', $translation), Helper::get_periods($translation)) }}</td>
+                        <td>
+                          <a href="{{ route('admin.product.edit', $item->id) }}" class="btn btn-xs btn-primary" title="{{ ucwords(lang('edit', $translation)) }}">
+                            <i class="fa fa-pencil"></i>&nbsp; {{ ucwords(lang('edit', $translation)) }}
+                          </a>
+                          <form action="{{ route('admin.product.delete') }}" method="POST" onsubmit="return confirm('{{ lang('Are you sure to delete this #item?', $translation, ['#item'=>$this_object]) }}');" style="display: inline">
+                            {{ csrf_field() }}
+                            <input type="hidden" name="id" value="{{ $item->id }}">
+                            <button type="submit" class="btn btn-xs btn-danger" title="{{ ucwords(lang('delete', $translation)) }}">
+                              <i class="fa fa-trash"></i>&nbsp; {{ ucwords(lang('delete', $translation)) }}
+                            </button>
+                          </form>
+                        </td>
+                      </tr>
+                    @endforeach
+                  </tbody>
+                @else
+                  <tbody>
+                    <tr>
+                      <td colspan="8"><h2 class="text-center">{{ strtoupper(lang('no data available', $translation)) }}</h2></td>
+                    </tr>
+                  </tbody>
+                @endif
               </table>
             </div>
           </div>
@@ -150,64 +178,15 @@
   </div>
 @endsection
 
-@section('script')
-  <!-- Datatables -->
-  @include('_form_element.datatables.script')
-
-  <script>
-    $(document).ready(function() {
-      {{ $function_get_data }}
-    });
-
-    function refresh_data() {
-      $('#datatables').show();
-      $('#datatables').dataTable().fnDestroy();
-      var table = $('#datatables').DataTable({
-        order: [[ 5, "desc" ]],
-        orderCellsTop: true,
-        fixedHeader: false,
-        serverSide: true,
-        processing: true,
-        ajax: "{{ $link_get_data }}",
-        columns: [
-            {data: 'title', name: 'products.title'},
-            {data: 'subtitle', name: 'products.subtitle'},
-            {data: 'category', name: 'category'},
-            {data: 'image_item', name: 'image_item'},
-            {data: 'item_status', name: 'item_status'},
-            {data: 'created_at', name: 'products.created_at'},
-            {data: 'updated_at', name: 'products.updated_at'},
-            {data: 'action', name: 'action'},
-        ]
-      });
-    }
-
-    function refresh_data_deleted() {
-      $('#datatables-deleted').show();
-      $('#datatables-deleted').dataTable().fnDestroy();
-      var table = $('#datatables-deleted').DataTable({
-        order: [[ 0, "asc" ]],
-        orderCellsTop: true,
-        fixedHeader: false,
-        serverSide: true,
-        processing: true,
-        ajax: "{{ $link_get_data }}",
-        columns: [
-            {data: 'title', name: 'products.title'},
-            {data: 'subtitle', name: 'products.subtitle'},
-            {data: 'category', name: 'category'},
-            {data: 'image_item', name: 'image_item'},
-            {data: 'item_status', name: 'item_status'},
-            {data: 'created_at', name: 'products.created_at'},
-            {data: 'deleted_at', name: 'products.deleted_at'},
-            {data: 'action', name: 'action'},
-        ]
-      });
-    }
-  </script>
+@section('css')
+  <!-- Sortable-Table -->
+  @include('_form_element.sortable_table.css')
 @endsection
 
-@section('css')
-  <!-- Datatables -->
-  @include('_form_element.datatables.css')
+@section('script')
+  <script>
+    var AjaxSortingURL = '{{ route("admin.product.sorting") }}';
+  </script>
+  <!-- Sortable-Table -->
+  @include('_form_element.sortable_table.script')
 @endsection

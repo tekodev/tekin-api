@@ -34,8 +34,10 @@ class ProductController extends Controller
             return back()->with('error', $authorize['message']);
         }
 
-        // FOR DISPLAY ACTIVE DATA
-        $data = true;
+        // GET THE DATA
+        $data = Product::whereNull('replaced_at')
+            ->orderBy('ordinal', 'asc')
+            ->get();
 
         return view('admin.product.list', compact('data'));
     }
@@ -164,6 +166,14 @@ class ProductController extends Controller
 
         $data->status = (int) $request->status;
         $data->category_id = $request->category_id ? (int) $request->category_id : null;
+
+        // SET ORDER / ORDINAL
+        $last = Product::select('ordinal')->orderBy('ordinal', 'desc')->first();
+        $ordinal = 1;
+        if ($last) {
+            $ordinal = $last->ordinal + 1;
+        }
+        $data->ordinal = $ordinal;
 
         // PROCESSING IMAGE
         $dir_path = 'uploads/product/';
@@ -616,5 +626,61 @@ class ProductController extends Controller
         $filename = 'larascms_products_import_template';
 
         return Excel::download(new ProductTemplateExportView, $filename . '.xlsx');
+    }
+
+    public function sorting(Request $request)
+    {
+        // AUTHORIZING...
+        $authorize = Helper::authorizing($this->module, 'Edit');
+        if ($authorize['status'] != 'true') {
+            return response()->json([
+                'status' => 'false',
+                'message' => $authorize['message']
+            ]);
+        }
+
+        // AJAX OR API VALIDATOR
+        $validation_rules = [
+            'rows' => 'required'
+        ];
+
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), $validation_rules);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'false',
+                'message' => 'Validation Error',
+                'data' => $validator->errors()->messages()
+            ]);
+        }
+
+        // JSON Array - sample: row[]=2&row[]=1&row[]=3
+        $rows = $request->input('rows');
+
+        // convert to array
+        $data = explode('&', $rows);
+
+        $ordinal = 1;
+        foreach ($data as $item) {
+            // split the data
+            $tmp = explode('[]=', $item);
+
+            if (isset($tmp[1])) {
+                $object = Product::find($tmp[1]);
+                if ($object) {
+                    $object->ordinal = $ordinal;
+                    $object->save();
+                    $ordinal++;
+                }
+            }
+        }
+
+        // SUCCESS
+        $response = [
+            'status' => 'true',
+            'message' => 'Successfully rearranged data',
+            'data' => $data
+        ];
+        return response()->json($response, 200);
     }
 }

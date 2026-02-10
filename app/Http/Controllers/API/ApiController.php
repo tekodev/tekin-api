@@ -45,7 +45,7 @@ class ApiController extends Controller
         }
 
         $data = $data
-            ->orderBy('id', 'desc')
+            ->orderBy('ordinal', 'asc')
             ->get();
 
         $data->map(function ($item) {

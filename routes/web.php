@@ -244,6 +244,7 @@ Route::group([
                 Route::post('/import', 'ProductController@import_excel')->name('admin.product.import_excel');
                 Route::get('/export', 'ProductController@export_excel')->name('admin.product.export_excel');
             });
+            Route::post('/sorting', 'ProductController@sorting')->name('admin.product.sorting');
         });
 
         // TOPIC
