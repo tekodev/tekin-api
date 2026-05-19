@@ -429,7 +429,7 @@ class ArticleController extends Controller
         }
         // MAKE SURE SLUG IS UNIQUE
         if ($data->slug != $slug) {
-            $slug = Helper::check_slug('article', $slug);
+            $slug = Helper::check_slug('articles', $slug);
         }
         $data->slug = $slug;
 
