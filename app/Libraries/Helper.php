@@ -305,4 +305,16 @@ class Helper extends TheHelper
         }
         return false;
     }
+
+    /**
+     * Generate slug for SEF (Search Engine Friendly) URL using Laravel's Str::slug
+     *
+     * @param String $string required
+     * 
+     * @return String
+     */
+    public static function generate_slug($string)
+    {
+        return \Illuminate\Support\Str::slug($string);
+    }
 }
