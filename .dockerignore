@@ -2,8 +2,11 @@
 .gitignore
 .env
 .env.backup
+# stale dev manifest (local composer'dan, debugbar içerir) → imaja girmesin, runtime yeniden üretir
+bootstrap/cache/*.php
 .phpunit.result.cache
 docker-compose.yml
+docker/
 Dockerfile
 .dockerignore
 node_modules

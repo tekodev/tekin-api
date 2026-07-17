@@ -1,33 +1,31 @@
-FROM php:8.2-fpm
+# lara-s-cms — Laravel 12 CMS/API · php-fpm + nginx (serversideup, non-root, prod)
+# Asset'ler pre-built (public/js, public/css committed) → npm build YOK.
 
-# Set working directory
-WORKDIR /var/www/html
+# ---- vendor: composer bağımlılıkları (dev'siz, optimize autoload) ----
+FROM composer:2 AS vendor
+WORKDIR /app
+COPY . .
+# --ignore-platform-reqs: composer:2 imajında gd/vs yok ama runtime (serversideup) hepsini içerir.
+# Lock commit'li → 'install' kilitli sürümleri kurar (yeniden çözmez), platform check'i atlamak güvenli.
+RUN composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader --no-scripts --ignore-platform-reqs
 
-# Install dependencies
-RUN apt-get update && apt-get install -y \
-    git \
-    curl \
-    libpng-dev \
-    libonig-dev \
-    libxml2-dev \
-    zip \
-    unzip \
-    libzip-dev \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-# Create storage and bootstrap/cache directories and set permissions
-RUN mkdir -p /var/www/html/storage/framework/{sessions,views,cache} \
-    && mkdir -p /var/www/html/storage/logs \
-    && mkdir -p /var/www/html/bootstrap/cache \
-    && chown -R www-data:www-data /var/www/html \
-    && chmod -R 775 /var/www/html/storage \
-    && chmod -R 775 /var/www/html/bootstrap/cache
-
-# Expose port 9000 and start php-fpm server
-EXPOSE 9000
-CMD ["php-fpm"]
-
+# ---- runtime: php-fpm + nginx (root'suz, Laravel eklentileri hazır, port 8080) ----
+FROM serversideup/php:8.3-fpm-nginx AS run
+# Uygulama + vendor (www-data'ya ait)
+COPY --chown=www-data:www-data --from=vendor /app /var/www/html
+# GÜVENLİK (webshell defense-in-depth): serversideup /storage/*.php'yi zaten engelliyor (php handler'dan
+# ÖNCE, doğru location sırasında). Aynı bloğu /uploads'u da kapsayacak şekilde genişlet — nginx .htaccess'i
+# yoksaydığı için şart. Yüklenen dosya .php olsa bile 403 döner, çalışmaz.
+# Assertion: template değişip sed no-op olursa build FAIL etsin (sessiz güvenlik regresyonu YOK).
+RUN sed -i 's#\^/storage/#^/(storage|uploads)/#g' \
+      /etc/nginx/site-opts.d/http.conf.template \
+      /etc/nginx/site-opts.d/https.conf.template \
+ && grep -q '(storage|uploads)' /etc/nginx/site-opts.d/http.conf.template \
+ && grep -q '(storage|uploads)' /etc/nginx/site-opts.d/https.conf.template
+# Container açılışında prod optimizasyonları (env geldikten SONRA). Migration YOK: DB restore şemayı sağlar.
+ENV AUTORUN_ENABLED=true \
+    AUTORUN_LARAVEL_MIGRATION=false \
+    AUTORUN_LARAVEL_CONFIG_CACHE=true \
+    AUTORUN_LARAVEL_ROUTE_CACHE=true \
+    AUTORUN_LARAVEL_VIEW_CACHE=true \
+    AUTORUN_LARAVEL_STORAGE_LINK=true
