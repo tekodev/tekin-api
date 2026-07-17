@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Yajra\Datatables\Datatables;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 // LIBRARIES
 use App\Libraries\Helper;
@@ -211,7 +212,7 @@ class UserController extends Controller
         $data->name = $name;
         $data->username = $username;
         $data->email = $email;
-        $data->password = Helper::hashing_this($request->input('password'));
+        $data->password = Hash::make($request->input('password'));
         $data->status = $status;
 
         if ($data->save()) {
@@ -366,7 +367,7 @@ class UserController extends Controller
         $data->status = $status;
         // IF PASSWORD IS CHANGED
         if ($request->input('password')) {
-            $data->password = Helper::hashing_this($request->input('password'));
+            $data->password = Hash::make($request->input('password'));
         }
 
         if ($data->save()) {
@@ -664,13 +665,13 @@ class UserController extends Controller
 
         // IF PASSWORD IS CHANGED
         if ($changepass) {
-            if ($data->password != Helper::hashing_this($request->input('current_pass'))) {
+            if (!Hash::check($request->input('current_pass'), $data->password)) {
                 return back()
                     ->withInput()
                     ->with('error', lang('#item is wrong', $this->translation, ['#item' => ucwords(lang('current password', $this->translation))]));
             }
             // UPDATE THE PASSWORD
-            $data->password = Helper::hashing_this($request->input('password'));
+            $data->password = Hash::make($request->input('password'));
         }
 
         if ($data->save()) {

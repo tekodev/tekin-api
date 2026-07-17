@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\system;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Hash;
 use Socialite;
 
 // LIBRARIES
@@ -55,13 +56,12 @@ class AuthController extends Controller
             }
         }
 
-        $password = Helper::hashing_this($request->login_pass);
-
-        // GET THE DATA
+        // GET THE DATA (kullanıcıyı username ile çek, şifreyi aşağıda bcrypt ile doğrula)
         $admin = SysUser::select(
             'sys_users.id',
             'sys_users.name',
             'sys_users.username',
+            'sys_users.password',
             'sys_users.force_logout',
             'sys_users.status',
             'sys_groups.id as group_id',
@@ -69,14 +69,11 @@ class AuthController extends Controller
         )
             ->leftJoin('sys_user_group', 'sys_users.id', '=', 'sys_user_group.user')
             ->leftJoin('sys_groups', 'sys_user_group.group', '=', 'sys_groups.id')
-            ->where([
-                'username' => Helper::validate_input($request->login_id),
-                'password' => $password
-            ])
+            ->where('sys_users.username', Helper::validate_input($request->login_id))
             ->first();
 
-        // CHECK IS DATA EXIST
-        if ($admin) {
+        // CHECK IS DATA EXIST + ŞİFRE DOĞRULAMA (bcrypt)
+        if ($admin && Hash::check($request->login_pass, $admin->password)) {
             if ($admin->status != 1) {
                 return back()
                     ->withInput()
@@ -320,7 +317,7 @@ class AuthController extends Controller
                     $admin->username = Helper::random_string();
                     $admin->email = $user->email;
                     $admin->email_verified_at = date('Y-m-d H:i:s');
-                    $admin->password = Helper::hashing_this(Helper::random_string());
+                    $admin->password = Hash::make(Helper::random_string());
                     // $admin->$social_id = $user->id;
 
                     if (!$admin->save()) {

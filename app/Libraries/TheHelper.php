@@ -214,8 +214,10 @@ class TheHelper
      */
     public static function hashing_this($string)
     {
-        return substr(md5($string), 5, 25);
-        // return bcrypt(sha1(str_replace(" ", "", $string)));
+        // GÜVENLİK: eski zayıf substr(md5()) KALDIRILDI (tuzsuz/kırpılmış MD5 = breach vektörüydü).
+        // Şifre işlemleri artık Auth/UserController'da Hash::make/Hash::check ile; bu fonksiyon
+        // geriye-uyum için bcrypt'e delege eder. Deterministik karşılaştırmada KULLANMA.
+        return bcrypt($string);
     }
 
     /**
