@@ -158,7 +158,7 @@ class AuthController extends Controller
                 ->with(Session::put('access', $access))
                 ->with(Session::put('branch', $branch_allowed))
                 ->with(Session::put('division', $division_allowed))
-                ->with(Session::put('auth', Helper::generate_token($password)));
+                ->with(Session::put('auth', Helper::generate_token($admin->password)));
         }
 
         // FAILED
