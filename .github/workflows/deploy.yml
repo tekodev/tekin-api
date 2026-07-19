@@ -13,7 +13,7 @@ concurrency:
 
 env:
   IMAGE: ghcr.io/tekodev/tekin-api
-  COOLIFY_APP_UUID: REPLACE_AFTER_RESOURCE_CREATE
+  COOLIFY_APP_UUID: m4r78aniedm72sv6e2z4j94x
 
 jobs:
   audit:
@@ -57,6 +57,20 @@ jobs:
             ${{ env.IMAGE }}:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      - name: Trivy imaj taramasi (fixable HIGH/CRITICAL → deploy'u blokla)
+        # composer/npm audit = kaynak paketler; Trivy = base imaj OS + binary CVE'leri.
+        # ignore-unfixed: sadece DUZELTILEBILIR acikta blokla (aksiyon alinabilir).
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ env.IMAGE }}:${{ github.sha }}
+          format: table
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+        env:
+          TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db
+          TRIVY_JAVA_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-java-db
+
       - name: tailnet'e katil (Coolify tailnet-only)
         uses: tailscale/github-action@v3
         with:
