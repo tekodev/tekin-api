@@ -66,8 +66,8 @@ jobs:
           format: table
           severity: HIGH,CRITICAL
           ignore-unfixed: true
-          # exit-code 0 = RAPOR modu (once baseline gor). Temiz teyit edilince "1" = blocking gate.
-          exit-code: "0"
+          # BLOCKING gate: fixable HIGH/CRITICAL bulunursa deploy'u DURDURUR (baseline temiz teyit: 2026-07-20)
+          exit-code: "1"
 
       - name: tailnet'e katil (Coolify tailnet-only)
         uses: tailscale/github-action@v3
