@@ -22,6 +22,12 @@ RUN sed -i 's#\^/storage/#^/(storage|uploads)/#g' \
       /etc/nginx/site-opts.d/https.conf.template \
  && grep -q '(storage|uploads)' /etc/nginx/site-opts.d/http.conf.template \
  && grep -q '(storage|uploads)' /etc/nginx/site-opts.d/https.conf.template
+# GÜVENLİK/Trivy: linux-libc-dev'i (kernel-header, serversideup base'inde gelen build artığı) KALDIR —
+# container KENDİ kernel'ini çalıştırmaz -> runtime'da GEREKSİZ. Trivy'de recurring kernel-CVE üretiyor
+# (CVE-2026-53399/-64600...) = whack-a-mole; kaldırmak kalıcı bitirir + imajı küçültür. kolayzeka'da doğrulandı.
+USER root
+RUN apt-get purge -y --auto-remove linux-libc-dev >/dev/null 2>&1 || true; rm -rf /var/lib/apt/lists/*
+USER www-data
 # Container açılışında prod optimizasyonları (env geldikten SONRA). Migration YOK: DB restore şemayı sağlar.
 ENV AUTORUN_ENABLED=true \
     AUTORUN_LARAVEL_MIGRATION=false \
