@@ -26,7 +26,17 @@ RUN sed -i 's#\^/storage/#^/(storage|uploads)/#g' \
 # container KENDİ kernel'ini çalıştırmaz -> runtime'da GEREKSİZ. Trivy'de recurring kernel-CVE üretiyor
 # (CVE-2026-53399/-64600...) = whack-a-mole; kaldırmak kalıcı bitirir + imajı küçültür. kolayzeka'da doğrulandı.
 USER root
-RUN apt-get purge -y --auto-remove linux-libc-dev >/dev/null 2>&1 || true; rm -rf /var/lib/apt/lists/*
+# GUVENLIK/Trivy (2): taban imajdaki OS paketlerini guvenlik yamalariyla YUKSELT. serversideup base'i
+# donemsel yayinlanir -> arada Debian advisory cikar (ornek: util-linux CVE-2026-53612/13/14/15 = mount
+# TOCTOU + SUID mount ile nosuid/noexec bypass; 9 pakete yayilmis 36 fixable HIGH). Yamalari build'de
+# almazsak Trivy blocking-gate'i HER deploy'u durdurur; tek tek .trivyignore = whack-a-mole (yukaridaki
+# linux-libc-dev dersinin aynisi). Sessiz guvenlik regresyonu olmasin diye set -eu ile GURULTULU fail eder.
+RUN set -eu; \
+    apt-get update >/dev/null; \
+    apt-get purge -y --auto-remove linux-libc-dev >/dev/null 2>&1 || true; \
+    DEBIAN_FRONTEND=noninteractive apt-get upgrade -y >/dev/null; \
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists/*
 USER www-data
 # Container açılışında prod optimizasyonları (env geldikten SONRA). Migration YOK: DB restore şemayı sağlar.
 ENV AUTORUN_ENABLED=true \
