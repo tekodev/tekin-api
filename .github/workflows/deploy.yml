@@ -76,6 +76,6 @@ jobs:
           version: latest
       - name: Coolify deploy tetikle
         run: |
-          curl --fail --silent --show-error \
+          curl --fail --silent --show-error -X POST \
             -H "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}" \
             "${{ secrets.COOLIFY_URL }}/api/v1/deploy?uuid=${COOLIFY_APP_UUID}&force=true"
