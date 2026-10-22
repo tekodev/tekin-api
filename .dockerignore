@@ -1,7 +1,7 @@
 .git
 .gitignore
 .env
-.env.backup
+.env.*
 # stale dev manifest (local composer'dan, debugbar içerir) → imaja girmesin, runtime yeniden üretir
 bootstrap/cache/*.php
 .phpunit.result.cache
@@ -17,3 +17,10 @@ vendor
 .idea
 .vscode
 
+# lokal calisma artiklari imaja girmesin (lokal build'de test logu imaja girdi, 2026-10-22)
+storage/logs/*.log
+storage/framework/sessions/*
+storage/framework/views/*.php
+storage/framework/cache/data/*
+.phpunit.cache
+tests
