@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Hash;
 use Socialite;
 
 // LIBRARIES
+use App\Libraries\AdminLoginThrottle;
 use App\Libraries\Helper;
 
 // MODELS
@@ -31,7 +32,7 @@ class AuthController extends Controller
         return view('admin.system.login');
     }
 
-    public function do_login(Request $request)
+    public function do_login(Request $request, AdminLoginThrottle $throttle)
     {
         // LARAVEL VALIDATION
         $validation = [
@@ -46,6 +47,14 @@ class AuthController extends Controller
             'login_pass' => ucwords(lang('password', $this->translation))
         ];
         $this->validate($request, $validation, $message, $names);
+
+        // BRUTE-FORCE KORUMASI: limit doluysa DB'ye hic gitmeden reddet
+        $retry_after = $throttle->availableIn($request);
+        if ($retry_after > 0) {
+            return back()
+                ->withInput($request->except('login_pass'))
+                ->with('error', lang('Too many login attempts. Please try again in #seconds seconds.', $this->translation, ['#seconds' => $retry_after]));
+        }
 
         if (env('RECAPTCHA_SECRET_KEY_ADMIN')) {
             // reCAPTCHA checking...
@@ -74,6 +83,8 @@ class AuthController extends Controller
 
         // CHECK IS DATA EXIST + ŞİFRE DOĞRULAMA (bcrypt)
         if ($admin && Hash::check($request->login_pass, $admin->password)) {
+            $throttle->clear($request);
+
             if ($admin->status != 1) {
                 return back()
                     ->withInput()
@@ -162,8 +173,10 @@ class AuthController extends Controller
         }
 
         // FAILED
+        $throttle->recordFailure($request);
+
         return back()
-            ->withInput()
+            ->withInput($request->except('login_pass'))
             ->with('error', lang('Username or Password is wrong!', $this->translation));
     }
 
